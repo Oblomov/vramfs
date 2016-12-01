@@ -1,21 +1,23 @@
-CC = g++
-CFLAGS = -Wall -Wpedantic -Werror -std=c++11 $(shell pkg-config fuse --cflags) -I include/
-LDFLAGS = -flto $(shell pkg-config fuse --libs) -l OpenCL
+CPPFLAGS = -Iinclude/ $(shell pkg-config fuse --cflags)
+CXXFLAGS = -Wall -Wpedantic -Werror -std=c++11
+
+LDFLAGS = -flto
+LDLIBS = $(shell pkg-config fuse --libs) -lOpenCL
 
 ifeq ($(DEBUG), 1)
-	CFLAGS += -g -DDEBUG -Wall -Werror -std=c++11
+	CXXFLAGS += -g -DDEBUG
 else
-	CFLAGS += -march=native -O2 -flto
+	CXXFLAGS += -march=native -O2
 endif
 
 bin/vramfs: build/util.o build/memory.o build/entry.o build/file.o build/dir.o build/symlink.o build/vramfs.o | bin
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(LINK.cc) -o $@ $^ $(LDLIBS)
 
 build bin:
 	@mkdir -p $@
 
 build/%.o: src/%.cpp | build
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(COMPILE.cc) -o $@ $<
 
 .PHONY: clean
 clean:
